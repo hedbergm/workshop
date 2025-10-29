@@ -3,7 +3,7 @@ import session from 'express-session';
 import expressLayouts from 'express-ejs-layouts';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { db, getAllVehicles, insertVehicle, getVehicle, setSalePrice, getEntries, insertEntry, getTotalCost, getAllOwners, insertOwner, getOwner, updateVehicle, updateOwner } from './db.js';
+import { getAllVehicles, insertVehicle, getVehicle, setSalePrice, getEntries, insertEntry, getTotalCost, getAllOwners, insertOwner, getOwner, updateVehicle, updateOwner } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,20 +48,19 @@ app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/'));
 });
 
-app.get('/vehicles', loginRequired, (req, res) => {
+app.get('/vehicles', loginRequired, async (req, res) => {
   const ownerId = req.query.owner_id ? Number(req.query.owner_id) : null;
-  const vehicles = getAllVehicles();
-  const owners = getAllOwners();
+  const [vehicles, owners] = await Promise.all([getAllVehicles(), getAllOwners()]);
   const filtered = ownerId ? vehicles.filter(v => Number(v.owner_id) === ownerId) : vehicles;
   res.render('vehicles', { vehicles: filtered, owners, selectedOwnerId: ownerId, user: req.session.user });
 });
 
-app.get('/vehicles/new', loginRequired, (req, res) => {
-  const owners = getAllOwners();
+app.get('/vehicles/new', loginRequired, async (req, res) => {
+  const owners = await getAllOwners();
   res.render('vehicle_new', { user: req.session.user, error: null, owners });
 });
 
-app.post('/vehicles/new', loginRequired, (req, res) => {
+app.post('/vehicles/new', loginRequired, async (req, res) => {
   try {
     const v = {
       regnr: String(req.body.regnr || '').trim().toUpperCase(),
@@ -71,28 +70,27 @@ app.post('/vehicles/new', loginRequired, (req, res) => {
       purchase_price: req.body.purchase_price ? Number(req.body.purchase_price) : null,
       owner_id: req.body.owner_id ? Number(req.body.owner_id) : null,
     };
-    insertVehicle(v);
+    await insertVehicle(v);
     res.redirect('/vehicles');
   } catch (err) {
     let msg = 'Kunne ikke registrere bil';
     if (String(err).includes('UNIQUE constraint failed')) msg = 'Regnr er allerede registrert';
-    const owners = getAllOwners();
+    const owners = await getAllOwners();
     res.status(400).render('vehicle_new', { user: req.session.user, error: msg, owners });
   }
 });
 
-app.get('/vehicles/:id', loginRequired, (req, res) => {
+app.get('/vehicles/:id', loginRequired, async (req, res) => {
   const id = Number(req.params.id);
-  const v = getVehicle(id);
+  const v = await getVehicle(id);
   if (!v) return res.sendStatus(404);
-  const entries = getEntries(id);
-  const totalCost = getTotalCost(id);
+  const [entries, totalCost] = await Promise.all([getEntries(id), getTotalCost(id)]);
   res.render('vehicle_detail', { v, entries, totalCost, user: req.session.user });
 });
 
-app.post('/vehicles/:id/add_entry', loginRequired, (req, res) => {
+app.post('/vehicles/:id/add_entry', loginRequired, async (req, res) => {
   const id = Number(req.params.id);
-  const v = getVehicle(id);
+  const v = await getVehicle(id);
   if (!v) return res.sendStatus(404);
   try {
     const date = req.body.date || new Date().toISOString().slice(0, 10);
@@ -104,20 +102,20 @@ app.post('/vehicles/:id/add_entry', loginRequired, (req, res) => {
       cost: Number(req.body.cost || 0),
       odometer: Number(req.body.odometer || 0),
     };
-    insertEntry(e);
+    await insertEntry(e);
     res.redirect(`/vehicles/${id}`);
   } catch (err) {
     res.status(400).send('Kunne ikke legge til oppføring: ' + err);
   }
 });
 
-app.post('/vehicles/:id/sell', loginRequired, (req, res) => {
+app.post('/vehicles/:id/sell', loginRequired, async (req, res) => {
   const id = Number(req.params.id);
-  const v = getVehicle(id);
+  const v = await getVehicle(id);
   if (!v) return res.sendStatus(404);
   try {
     const price = req.body.sale_price ? Number(req.body.sale_price) : null;
-    setSalePrice(id, price);
+    await setSalePrice(id, price);
     res.redirect(`/vehicles/${id}`);
   } catch (err) {
     res.status(400).send('Kunne ikke oppdatere utsalgspris: ' + err);
@@ -125,20 +123,20 @@ app.post('/vehicles/:id/sell', loginRequired, (req, res) => {
 });
 
 // Edit vehicle
-app.get('/vehicles/:id/edit', loginRequired, (req, res) => {
+app.get('/vehicles/:id/edit', loginRequired, async (req, res) => {
   const id = Number(req.params.id);
-  const v = getVehicle(id);
+  const v = await getVehicle(id);
   if (!v) return res.sendStatus(404);
-  const owners = getAllOwners();
+  const owners = await getAllOwners();
   res.render('vehicle_edit', { v, owners, user: req.session.user, error: null });
 });
 
-app.post('/vehicles/:id/edit', loginRequired, (req, res) => {
+app.post('/vehicles/:id/edit', loginRequired, async (req, res) => {
   const id = Number(req.params.id);
-  const v = getVehicle(id);
+  const v = await getVehicle(id);
   if (!v) return res.sendStatus(404);
   try {
-    updateVehicle(id, {
+    await updateVehicle(id, {
       owner_id: req.body.owner_id,
       regnr: req.body.regnr,
       make: req.body.make,
@@ -148,7 +146,7 @@ app.post('/vehicles/:id/edit', loginRequired, (req, res) => {
     });
     res.redirect('/vehicles?owner_id=' + (req.body.owner_id || ''));
   } catch (err) {
-    const owners = getAllOwners();
+    const owners = await getAllOwners();
     const msg = String(err).includes('UNIQUE constraint failed') ? 'Regnr er allerede registrert' : String(err);
     res.status(400).render('vehicle_edit', { v, owners, user: req.session.user, error: msg });
   }
@@ -158,8 +156,8 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server lytter på http://127.0.0.1:${PORT}`));
 
 // Owners
-app.get('/owners', loginRequired, (req, res) => {
-  const owners = getAllOwners();
+app.get('/owners', loginRequired, async (req, res) => {
+  const owners = await getAllOwners();
   res.render('owners', { owners, user: req.session.user, error: null });
 });
 
@@ -167,28 +165,28 @@ app.get('/owners/new', loginRequired, (req, res) => {
   res.render('owner_new', { user: req.session.user, error: null });
 });
 
-app.post('/owners/new', loginRequired, (req, res) => {
+app.post('/owners/new', loginRequired, async (req, res) => {
   try {
-    insertOwner({ name: req.body.name });
+    await insertOwner({ name: req.body.name });
     res.redirect('/owners');
   } catch (err) {
     res.status(400).render('owner_new', { user: req.session.user, error: String(err) });
   }
 });
 
-app.get('/owners/:id/edit', loginRequired, (req, res) => {
+app.get('/owners/:id/edit', loginRequired, async (req, res) => {
   const id = Number(req.params.id);
-  const o = getOwner(id);
+  const o = await getOwner(id);
   if (!o) return res.sendStatus(404);
   res.render('owner_edit', { o, user: req.session.user, error: null });
 });
 
-app.post('/owners/:id/edit', loginRequired, (req, res) => {
+app.post('/owners/:id/edit', loginRequired, async (req, res) => {
   const id = Number(req.params.id);
-  const o = getOwner(id);
+  const o = await getOwner(id);
   if (!o) return res.sendStatus(404);
   try {
-    updateOwner(id, { name: req.body.name });
+    await updateOwner(id, { name: req.body.name });
     res.redirect('/owners');
   } catch (err) {
     res.status(400).render('owner_edit', { o, user: req.session.user, error: String(err) });
