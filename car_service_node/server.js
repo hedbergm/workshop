@@ -3,7 +3,7 @@ import session from 'express-session';
 import expressLayouts from 'express-ejs-layouts';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { db, getAllVehicles, insertVehicle, getVehicle, setSalePrice, getEntries, insertEntry, getTotalCost, getAllOwners, insertOwner, getOwner } from './db.js';
+import { db, getAllVehicles, insertVehicle, getVehicle, setSalePrice, getEntries, insertEntry, getTotalCost, getAllOwners, insertOwner, getOwner, updateVehicle, updateOwner } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -124,6 +124,36 @@ app.post('/vehicles/:id/sell', loginRequired, (req, res) => {
   }
 });
 
+// Edit vehicle
+app.get('/vehicles/:id/edit', loginRequired, (req, res) => {
+  const id = Number(req.params.id);
+  const v = getVehicle(id);
+  if (!v) return res.sendStatus(404);
+  const owners = getAllOwners();
+  res.render('vehicle_edit', { v, owners, user: req.session.user, error: null });
+});
+
+app.post('/vehicles/:id/edit', loginRequired, (req, res) => {
+  const id = Number(req.params.id);
+  const v = getVehicle(id);
+  if (!v) return res.sendStatus(404);
+  try {
+    updateVehicle(id, {
+      owner_id: req.body.owner_id,
+      regnr: req.body.regnr,
+      make: req.body.make,
+      vtype: req.body.vtype,
+      model: req.body.model,
+      purchase_price: req.body.purchase_price,
+    });
+    res.redirect('/vehicles?owner_id=' + (req.body.owner_id || ''));
+  } catch (err) {
+    const owners = getAllOwners();
+    const msg = String(err).includes('UNIQUE constraint failed') ? 'Regnr er allerede registrert' : String(err);
+    res.status(400).render('vehicle_edit', { v, owners, user: req.session.user, error: msg });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server lytter på http://127.0.0.1:${PORT}`));
 
@@ -143,5 +173,24 @@ app.post('/owners/new', loginRequired, (req, res) => {
     res.redirect('/owners');
   } catch (err) {
     res.status(400).render('owner_new', { user: req.session.user, error: String(err) });
+  }
+});
+
+app.get('/owners/:id/edit', loginRequired, (req, res) => {
+  const id = Number(req.params.id);
+  const o = getOwner(id);
+  if (!o) return res.sendStatus(404);
+  res.render('owner_edit', { o, user: req.session.user, error: null });
+});
+
+app.post('/owners/:id/edit', loginRequired, (req, res) => {
+  const id = Number(req.params.id);
+  const o = getOwner(id);
+  if (!o) return res.sendStatus(404);
+  try {
+    updateOwner(id, { name: req.body.name });
+    res.redirect('/owners');
+  } catch (err) {
+    res.status(400).render('owner_edit', { o, user: req.session.user, error: String(err) });
   }
 });

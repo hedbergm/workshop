@@ -1,0 +1,35 @@
+<section class="card">
+  <h1>Endre bil</h1>
+  <% if (error) { %><ul class="flash"><li><%= error %></li></ul><% } %>
+  <form method="post">
+    <div class="grid">
+      <label>Eier
+        <select name="owner_id">
+          <option value="">(Ingen eier)</option>
+          <% for (const o of owners) { %>
+            <option value="<%= o.id %>" <%= (v.owner_id===o.id)?'selected':'' %>><%= o.name %></option>
+          <% } %>
+        </select>
+      </label>
+      <label>Regnr
+        <input name="regnr" required maxlength="32" value="<%= v.regnr %>">
+      </label>
+      <label>Merke
+        <input name="make" required value="<%= v.make %>">
+      </label>
+      <label>Type
+        <input name="vtype" required value="<%= v.vtype %>">
+      </label>
+      <label>Modell
+        <input name="model" required value="<%= v.model %>">
+      </label>
+      <label>Innkjøpspris
+        <input name="purchase_price" type="number" step="0.01" min="0" value="<%= v.purchase_price!=null? v.purchase_price : '' %>">
+      </label>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/vehicles?owner_id=<%= v.owner_id || '' %>">Avbryt</a>
+      <button type="submit" class="btn primary">Lagre</button>
+    </div>
+  </form>
+</section>

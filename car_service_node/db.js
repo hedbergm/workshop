@@ -111,3 +111,36 @@ export function getOwner(id) {
   db.read();
   return db.data.owners.find(o => o.id === Number(id));
 }
+
+// Updates
+export function updateVehicle(id, patch) {
+  db.read();
+  const v = db.data.vehicles.find(x => x.id === Number(id));
+  if (!v) return null;
+  // Uniqueness check for regnr if changed
+  if (patch.regnr && String(patch.regnr).trim().toUpperCase() !== v.regnr) {
+    const exists = db.data.vehicles.find(x => x.regnr === String(patch.regnr).trim().toUpperCase() && x.id !== v.id);
+    if (exists) throw new Error('UNIQUE constraint failed: vehicles.regnr');
+  }
+  if (patch.regnr != null) v.regnr = String(patch.regnr).trim().toUpperCase();
+  if (patch.make != null) v.make = String(patch.make).trim();
+  if (patch.vtype != null) v.vtype = String(patch.vtype).trim();
+  if (patch.model != null) v.model = String(patch.model).trim();
+  if (patch.purchase_price !== undefined) v.purchase_price = patch.purchase_price === '' ? null : Number(patch.purchase_price);
+  if (patch.owner_id !== undefined) v.owner_id = patch.owner_id === '' || patch.owner_id == null ? null : Number(patch.owner_id);
+  db.write();
+  return v;
+}
+
+export function updateOwner(id, patch) {
+  db.read();
+  const o = db.data.owners.find(x => x.id === Number(id));
+  if (!o) return null;
+  if (patch.name != null) {
+    const name = String(patch.name).trim();
+    if (!name) throw new Error('Navn er påkrevd');
+    o.name = name;
+  }
+  db.write();
+  return o;
+}

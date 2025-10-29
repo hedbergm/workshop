@@ -38,7 +38,10 @@
             <td><%= v.make %></td>
             <td><%= v.vtype %></td>
             <td><%= v.model %></td>
-            <td><a class="btn" href="/vehicles/<%= v.id %>">Åpne</a></td>
+            <td>
+              <a class="btn" href="/vehicles/<%= v.id %>">Åpne</a>
+              <a class="btn" href="/vehicles/<%= v.id %>/edit">Endre</a>
+            </td>
           </tr>
         <% } %>
       </tbody>

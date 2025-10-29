@@ -18,7 +18,9 @@
       <% for (const o of owners) { %>
         <tr>
           <td><%= o.name %></td>
-          <td></td>
+          <td>
+            <a class="btn" href="/owners/<%= o.id %>/edit">Endre</a>
+          </td>
         </tr>
       <% } %>
     </tbody>
