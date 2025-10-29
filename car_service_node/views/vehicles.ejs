@@ -1,45 +1,48 @@
- 
-<section class="toolbar" style="justify-content:space-between">
-  <form method="get" action="/vehicles" style="display:flex; gap:10px; align-items:center">
-    <label style="margin:0">
-      <span style="display:block; font-size:12px; opacity:.8">Eier</span>
-      <select name="owner_id">
-        <option value="">Alle eiere</option>
-        <% for (const o of owners) { %>
-          <option value="<%= o.id %>" <%= (selectedOwnerId===o.id)?'selected':'' %>><%= o.name %></option>
-        <% } %>
-      </select>
-    </label>
-    <button class="btn">Vis</button>
-  </form>
+<section class="toolbar" style="justify-content:space-between; flex-wrap:wrap; gap:10px">
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+    <span style="font-size:12px; opacity:.8">Eier</span>
+    <% if (owners.length === 0) { %>
+      <span class="hint">Ingen eiere. <a href="/owners/new">Opprett ny eier</a></span>
+    <% } %>
+    <% for (const o of owners) { %>
+      <a class="btn <%= (selectedOwnerId===o.id)?'primary':'' %>" href="/vehicles?owner_id=<%= o.id %>"><%= o.name %></a>
+    <% } %>
+  </div>
   <a class="btn" href="/vehicles/new">+ Registrer ny bil</a>
-  
 </section>
-<section class="card">
-  <h1>Bilregister</h1>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Regnr</th>
-        <th>Merke</th>
-        <th>Type</th>
-        <th>Modell</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% if (vehicles.length === 0) { %>
-        <tr><td colspan="5">Ingen biler registrert enda.</td></tr>
-      <% } %>
-      <% for (const v of vehicles) { %>
+
+<% if (!selectedOwnerId) { %>
+  <section class="card">
+    <h1>Bilregister</h1>
+    <p>Velg en eier for å vise registeret.</p>
+  </section>
+<% } else { %>
+  <section class="card">
+    <h1>Bilregister</h1>
+    <table class="table">
+      <thead>
         <tr>
-          <td><%= v.regnr %></td>
-          <td><%= v.make %></td>
-          <td><%= v.vtype %></td>
-          <td><%= v.model %></td>
-          <td><a class="btn" href="/vehicles/<%= v.id %>">Åpne</a></td>
+          <th>Regnr</th>
+          <th>Merke</th>
+          <th>Type</th>
+          <th>Modell</th>
+          <th></th>
         </tr>
-      <% } %>
-    </tbody>
-  </table>
-</section>
+      </thead>
+      <tbody>
+        <% if (vehicles.length === 0) { %>
+          <tr><td colspan="5">Ingen biler registrert for valgt eier.</td></tr>
+        <% } %>
+        <% for (const v of vehicles) { %>
+          <tr>
+            <td><%= v.regnr %></td>
+            <td><%= v.make %></td>
+            <td><%= v.vtype %></td>
+            <td><%= v.model %></td>
+            <td><a class="btn" href="/vehicles/<%= v.id %>">Åpne</a></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </section>
+<% } %>
