@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="toolbar">
+  <a class="btn" href="{{ url_for('new_vehicle') }}">+ Registrer ny bil</a>
+</section>
+
+<section class="card">
+  <h1>Bilregister</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Regnr</th>
+        <th>Merke</th>
+        <th>Type</th>
+        <th>Modell</th>
+        <th>Innkjøpspris</th>
+        <th>Sum kostnader</th>
+        <th>Utsalgspris</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vehicles %}
+      <tr>
+        <td>{{ v.regnr }}</td>
+        <td>{{ v.make }}</td>
+        <td>{{ v.vtype }}</td>
+        <td>{{ v.model }}</td>
+        <td>{{ '%.0f'|format(v.purchase_price) if v.purchase_price is not none else '-' }}</td>
+        <td>{{ '%.0f'|format(totals[v.id]) }}</td>
+        <td>{{ '%.0f'|format(v.sale_price) if v.sale_price is not none else '-' }}</td>
+        <td><a class="btn" href="{{ url_for('vehicle_detail', vehicle_id=v.id) }}">Åpne</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8">Ingen biler registrert enda.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

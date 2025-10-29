@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: car-service-node
+    env: node
+    plan: free
+    # Clone full repo; build and run from subfolder so sibling assets (logo) are available
+    buildCommand: |
+      cd car_service_node
+      npm install --production=false
+    startCommand: |
+      cd car_service_node
+      node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /

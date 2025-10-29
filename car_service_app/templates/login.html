@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h1>Logg inn</h1>
+  <form method="post">
+    <label>Brukernavn
+      <input type="text" name="username" required value="Admin">
+    </label>
+    <label>Passord
+      <input type="password" name="password" required value="Admin">
+    </label>
+    <button type="submit" class="btn">Logg inn</button>
+  </form>
+  <p class="hint">Demo innlogging: Admin / Admin</p>
+</section>
+{% endblock %}

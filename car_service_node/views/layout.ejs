@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bilservice</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="brand">
+      <a href="/vehicles" class="brand-link">
+        <img src="/assets/pivern.png" alt="Logo" class="logo" />
+        <span>Bilservice</span>
+      </a>
+    </div>
+    <% if (typeof user !== 'undefined' && user) { %>
+    <div class="nav-actions">
+      <span class="hello">Hei, <%= user %></span>
+      <a href="/logout" class="btn">Logg ut</a>
+    </div>
+    <% } %>
+  </nav>
+  <main class="container">
+    <% if (typeof flash !== 'undefined' && flash) { %>
+      <ul class="flash"><li><%= flash %></li></ul>
+    <% } %>
+    <%- body %>
+  </main>
+</body>
+</html>

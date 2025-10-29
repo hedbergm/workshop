@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h1>Registrer ny bil</h1>
+  <form method="post">
+    <div class="grid">
+      <label>Regnr
+        <input name="regnr" required placeholder="AB12345" maxlength="32">
+      </label>
+      <label>Merke
+        <input name="make" required>
+      </label>
+      <label>Type
+        <input name="vtype" required>
+      </label>
+      <label>Modell
+        <input name="model" required>
+      </label>
+      <label>Innkjøpspris
+        <input name="purchase_price" type="number" step="0.01" min="0">
+      </label>
+    </div>
+    <div class="actions">
+      <a class="btn" href="{{ url_for('list_vehicles') }}">Avbryt</a>
+      <button type="submit" class="btn primary">Lagre</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

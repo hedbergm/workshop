@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bilservice</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="brand"><a href="{{ url_for('list_vehicles') }}">Bilservice</a></div>
+    {% if session.get('user') %}
+    <div class="nav-actions">
+      <span class="hello">Hei, {{ session.get('user') }}</span>
+      <a href="{{ url_for('logout') }}" class="btn">Logg ut</a>
+    </div>
+    {% endif %}
+  </nav>
+  <main class="container">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flash">
+          {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

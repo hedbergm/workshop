@@ -1,0 +1,38 @@
+ 
+<section class="toolbar">
+  <a class="btn" href="/vehicles/new">+ Registrer ny bil</a>
+</section>
+<section class="card">
+  <h1>Bilregister</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Regnr</th>
+        <th>Merke</th>
+        <th>Type</th>
+        <th>Modell</th>
+        <th>Innkjøpspris</th>
+        <th>Sum kostnader</th>
+        <th>Utsalgspris</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (vehicles.length === 0) { %>
+        <tr><td colspan="8">Ingen biler registrert enda.</td></tr>
+      <% } %>
+      <% for (const v of vehicles) { %>
+        <tr>
+          <td><%= v.regnr %></td>
+          <td><%= v.make %></td>
+          <td><%= v.vtype %></td>
+          <td><%= v.model %></td>
+          <td><%= v.purchase_price != null ? v.purchase_price.toFixed(0) : '-' %></td>
+          <td><%= (totals[v.id] || 0).toFixed(0) %></td>
+          <td><%= v.sale_price != null ? Number(v.sale_price).toFixed(0) : '-' %></td>
+          <td><a class="btn" href="/vehicles/<%= v.id %>">Åpne</a></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</section>
