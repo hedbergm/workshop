@@ -1,12 +1,15 @@
 import { JSONFileSync } from 'lowdb/node';
 import { LowSync } from 'lowdb';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.join(__dirname, 'database.json');
+const baseDir = process.env.DATA_DIR || __dirname;
+try { fs.mkdirSync(baseDir, { recursive: true }); } catch {}
+const dbPath = path.join(baseDir, 'database.json');
 const adapter = new JSONFileSync(dbPath);
 export const db = new LowSync(adapter, { vehicles: [], service_entries: [], owners: [], _seq: 1 });
 db.read();
