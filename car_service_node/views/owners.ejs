@@ -1,0 +1,26 @@
+<% /* Owners list */ %>
+<section class="toolbar" style="justify-content:flex-end">
+  <a class="btn" href="/owners/new">+ Ny eier</a>
+</section>
+<section class="card">
+  <h1>Eiere</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Navn</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (owners.length === 0) { %>
+        <tr><td colspan="2">Ingen eiere registrert enda.</td></tr>
+      <% } %>
+      <% for (const o of owners) { %>
+        <tr>
+          <td><%= o.name %></td>
+          <td></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</section>

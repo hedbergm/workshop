@@ -8,9 +8,11 @@ const __dirname = path.dirname(__filename);
 
 const dbPath = path.join(__dirname, 'database.json');
 const adapter = new JSONFileSync(dbPath);
-export const db = new LowSync(adapter, { vehicles: [], service_entries: [], _seq: 1 });
+export const db = new LowSync(adapter, { vehicles: [], service_entries: [], owners: [], _seq: 1 });
 db.read();
-if (!db.data) db.data = { vehicles: [], service_entries: [], _seq: 1 };
+if (!db.data) db.data = { vehicles: [], service_entries: [], owners: [], _seq: 1 };
+// Backward-compat: ensure arrays exist
+db.data.owners = db.data.owners || [];
 
 function nextId() {
   db.data._seq = (db.data._seq || 1) + 1;
@@ -26,7 +28,7 @@ export function insertVehicle(v) {
   db.read();
   const exists = db.data.vehicles.find(x => x.regnr === v.regnr);
   if (exists) throw new Error('UNIQUE constraint failed: vehicles.regnr');
-  const row = { id: nextId(), sale_price: null, sold_date: null, created_at: new Date().toISOString(), ...v };
+  const row = { id: nextId(), sale_price: null, sold_date: null, created_at: new Date().toISOString(), owner_id: v.owner_id ? Number(v.owner_id) : null, ...v };
   db.data.vehicles.push(row);
   db.write();
   return row;
@@ -67,4 +69,24 @@ export function getTotalCost(vehicle_id) {
   return db.data.service_entries
     .filter(e => e.vehicle_id === Number(vehicle_id))
     .reduce((s, e) => s + Number(e.cost || 0), 0);
+}
+
+// Owners
+export function getAllOwners() {
+  db.read();
+  return [...db.data.owners].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+}
+
+export function insertOwner(o) {
+  db.read();
+  const row = { id: nextId(), name: String(o.name || '').trim() };
+  if (!row.name) throw new Error('Navn er påkrevd');
+  db.data.owners.push(row);
+  db.write();
+  return row;
+}
+
+export function getOwner(id) {
+  db.read();
+  return db.data.owners.find(o => o.id === Number(id));
 }

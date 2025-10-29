@@ -4,6 +4,14 @@
   <% if (error) { %><ul class="flash"><li><%= error %></li></ul><% } %>
   <form method="post">
     <div class="grid">
+      <label>Eier
+        <select name="owner_id">
+          <option value="">(Ingen eier)</option>
+          <% for (const o of owners) { %>
+            <option value="<%= o.id %>"><%= o.name %></option>
+          <% } %>
+        </select>
+      </label>
       <label>Regnr
         <input name="regnr" required placeholder="AB12345" maxlength="32">
       </label>
@@ -25,4 +33,5 @@
       <button type="submit" class="btn primary">Lagre</button>
     </div>
   </form>
+  <p class="hint">Mangler eier? <a href="/owners/new">Opprett ny eier</a></p>
 </section>

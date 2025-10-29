@@ -3,7 +3,7 @@ import session from 'express-session';
 import expressLayouts from 'express-ejs-layouts';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { db, getAllVehicles, insertVehicle, getVehicle, setSalePrice, getEntries, insertEntry, getTotalCost } from './db.js';
+import { db, getAllVehicles, insertVehicle, getVehicle, setSalePrice, getEntries, insertEntry, getTotalCost, getAllOwners, insertOwner, getOwner } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,13 +49,16 @@ app.get('/logout', (req, res) => {
 });
 
 app.get('/vehicles', loginRequired, (req, res) => {
+  const ownerId = req.query.owner_id ? Number(req.query.owner_id) : null;
   const vehicles = getAllVehicles();
-  const totals = Object.fromEntries(vehicles.map(v => [v.id, getTotalCost(v.id)]));
-  res.render('vehicles', { vehicles, totals, user: req.session.user });
+  const owners = getAllOwners();
+  const filtered = ownerId ? vehicles.filter(v => Number(v.owner_id) === ownerId) : vehicles;
+  res.render('vehicles', { vehicles: filtered, owners, selectedOwnerId: ownerId, user: req.session.user });
 });
 
 app.get('/vehicles/new', loginRequired, (req, res) => {
-  res.render('vehicle_new', { user: req.session.user, error: null });
+  const owners = getAllOwners();
+  res.render('vehicle_new', { user: req.session.user, error: null, owners });
 });
 
 app.post('/vehicles/new', loginRequired, (req, res) => {
@@ -66,13 +69,15 @@ app.post('/vehicles/new', loginRequired, (req, res) => {
       vtype: String(req.body.vtype || '').trim(),
       model: String(req.body.model || '').trim(),
       purchase_price: req.body.purchase_price ? Number(req.body.purchase_price) : null,
+      owner_id: req.body.owner_id ? Number(req.body.owner_id) : null,
     };
     insertVehicle(v);
     res.redirect('/vehicles');
   } catch (err) {
     let msg = 'Kunne ikke registrere bil';
     if (String(err).includes('UNIQUE constraint failed')) msg = 'Regnr er allerede registrert';
-    res.status(400).render('vehicle_new', { user: req.session.user, error: msg });
+    const owners = getAllOwners();
+    res.status(400).render('vehicle_new', { user: req.session.user, error: msg, owners });
   }
 });
 
@@ -121,3 +126,22 @@ app.post('/vehicles/:id/sell', loginRequired, (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server lytter på http://127.0.0.1:${PORT}`));
+
+// Owners
+app.get('/owners', loginRequired, (req, res) => {
+  const owners = getAllOwners();
+  res.render('owners', { owners, user: req.session.user, error: null });
+});
+
+app.get('/owners/new', loginRequired, (req, res) => {
+  res.render('owner_new', { user: req.session.user, error: null });
+});
+
+app.post('/owners/new', loginRequired, (req, res) => {
+  try {
+    insertOwner({ name: req.body.name });
+    res.redirect('/owners');
+  } catch (err) {
+    res.status(400).render('owner_new', { user: req.session.user, error: String(err) });
+  }
+});
