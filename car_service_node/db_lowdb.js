@@ -12,6 +12,8 @@ try { fs.mkdirSync(baseDir, { recursive: true }); } catch {}
 const dbPath = path.join(baseDir, 'database.json');
 const adapter = new JSONFileSync(dbPath);
 export const db = new LowSync(adapter, { vehicles: [], service_entries: [], owners: [], _seq: 1 });
+export const backend = 'lowdb';
+export const info = { dbPath };
 db.read();
 if (!db.data) db.data = { vehicles: [], service_entries: [], owners: [], _seq: 1 };
 // Backward-compat: ensure arrays exist and correct types

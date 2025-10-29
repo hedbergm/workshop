@@ -6,6 +6,12 @@ if (process.env.DATABASE_URL) {
 	impl = await import('./db_lowdb.js');
 }
 
+try {
+	const backendName = impl.backend || 'unknown';
+	const extra = impl.info && impl.info.dbPath ? ` (file: ${impl.info.dbPath})` : '';
+	console.log(`[db] backend=${backendName}${extra}`);
+} catch {}
+
 export const getAllVehicles = impl.getAllVehicles;
 export const insertVehicle = impl.insertVehicle;
 export const getVehicle = impl.getVehicle;

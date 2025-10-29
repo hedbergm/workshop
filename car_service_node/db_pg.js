@@ -52,6 +52,7 @@ async function migrate() {
 
 // Kick off migrations on first import
 await migrate();
+export const backend = 'postgres';
 
 // Helpers
 const num = (v) => (v === '' || v == null ? null : Number(v));
