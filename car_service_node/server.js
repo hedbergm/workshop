@@ -49,10 +49,21 @@ app.get('/logout', (req, res) => {
 });
 
 app.get('/vehicles', loginRequired, async (req, res) => {
-  const ownerId = req.query.owner_id ? Number(req.query.owner_id) : null;
+  const ownerId = req.query.owner_id && req.query.owner_id !== 'none' ? Number(req.query.owner_id) : null;
+  const selectedUnowned = req.query.unowned === '1' || req.query.owner_id === 'none';
   const [vehicles, owners] = await Promise.all([getAllVehicles(), getAllOwners()]);
-  const filtered = ownerId ? vehicles.filter(v => Number(v.owner_id) === ownerId) : vehicles;
-  res.render('vehicles', { vehicles: filtered, owners, selectedOwnerId: ownerId, user: req.session.user });
+  let filtered = vehicles;
+  let ownerName = null;
+  if (selectedUnowned) {
+    filtered = vehicles.filter(v => v.owner_id == null);
+  } else if (ownerId) {
+    filtered = vehicles.filter(v => Number(v.owner_id) === ownerId);
+    const foundOwner = owners.find(o => o.id === ownerId);
+    ownerName = foundOwner ? foundOwner.name : null;
+  } else {
+    filtered = [];
+  }
+  res.render('vehicles', { vehicles: filtered, owners, selectedOwnerId: ownerId, selectedUnowned, ownerName, user: req.session.user });
 });
 
 app.get('/vehicles/new', loginRequired, async (req, res) => {

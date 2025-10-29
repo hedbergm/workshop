@@ -3,6 +3,7 @@
     <% if (owners.length === 0) { %>
       <span class="hint">Ingen eiere. <a href="/owners/new">Opprett ny eier</a></span>
     <% } %>
+    <a class="btn <%= selectedUnowned ? 'primary' : '' %>" href="/vehicles?unowned=1">Enkelt biler</a>
     <% for (const o of owners) { %>
       <a class="btn <%= (selectedOwnerId===o.id)?'primary':'' %>" href="/vehicles?owner_id=<%= o.id %>"><%= o.name %></a>
     <% } %>
@@ -10,14 +11,20 @@
   <a class="btn" href="/vehicles/new">+ Registrer ny bil</a>
 </section>
 
-<% if (!selectedOwnerId) { %>
+<% if (!selectedOwnerId && !selectedUnowned) { %>
   <section class="card">
     <h1>Bilregister</h1>
-    <p>Velg en eier for å vise registeret.</p>
+    <p>Velg en eier eller «Enkelt biler» for å vise registeret.</p>
   </section>
 <% } else { %>
   <section class="card">
-    <h1>Bilregister</h1>
+    <h1>
+      <% if (selectedUnowned) { %>
+        Enkelt biler
+      <% } else { %>
+        Bilregister <%= ownerName ? '– ' + ownerName : '' %>
+      <% } %>
+    </h1>
     <table class="table">
       <thead>
         <tr>
@@ -30,7 +37,15 @@
       </thead>
       <tbody>
         <% if (vehicles.length === 0) { %>
-          <tr><td colspan="5">Ingen biler registrert for valgt eier.</td></tr>
+          <tr>
+            <td colspan="5">
+              <% if (selectedUnowned) { %>
+                Ingen «enkelt biler» registrert.
+              <% } else { %>
+                Ingen biler registrert for valgt eier.
+              <% } %>
+            </td>
+          </tr>
         <% } %>
         <% for (const v of vehicles) { %>
           <tr>
